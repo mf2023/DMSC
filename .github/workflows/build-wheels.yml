@@ -206,7 +206,7 @@ jobs:
           path: target/aarch64-unknown-linux-gnu/release/ric
 
   build-cli-windows:
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
 
@@ -462,7 +462,7 @@ jobs:
           path: target/aarch64-unknown-linux-gnu/release/libri.*
 
   build-rust-windows:
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
 
@@ -718,7 +718,7 @@ jobs:
             include/ri.h
 
   build-c-libs-windows:
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
 
@@ -1098,31 +1098,31 @@ jobs:
           # Windows x64: 7 Python versions (3.8-3.14)
           # Native Windows build using MSVC toolchain
           - python: '3.8'
-            runs-on: windows-latest
+            runs-on: windows-2022
             target: x86_64-pc-windows-msvc
             manylinux: null
           - python: '3.9'
-            runs-on: windows-latest
+            runs-on: windows-2022
             target: x86_64-pc-windows-msvc
             manylinux: null
           - python: '3.10'
-            runs-on: windows-latest
+            runs-on: windows-2022
             target: x86_64-pc-windows-msvc
             manylinux: null
           - python: '3.11'
-            runs-on: windows-latest
+            runs-on: windows-2022
             target: x86_64-pc-windows-msvc
             manylinux: null
           - python: '3.12'
-            runs-on: windows-latest
+            runs-on: windows-2022
             target: x86_64-pc-windows-msvc
             manylinux: null
           - python: '3.13'
-            runs-on: windows-latest
+            runs-on: windows-2022
             target: x86_64-pc-windows-msvc
             manylinux: null
           - python: '3.14'
-            runs-on: windows-latest
+            runs-on: windows-2022
             target: x86_64-pc-windows-msvc
             manylinux: null
 
@@ -1345,17 +1345,35 @@ jobs:
           maturin-version: v1.8.3
           args: --release -o dist
           before-script-linux: |
+            set +e
             # Install clang 7 via SCL for oqs-sys bindgen (needs libclang >= 6.0)
             yum install -y centos-release-scl 2>/dev/null || true
             yum install -y llvm-toolset-7-clang 2>/dev/null || true
             if [ -f /opt/rh/llvm-toolset-7/root/usr/lib64/libclang.so ]; then
               export LIBCLANG_PATH=/opt/rh/llvm-toolset-7/root/usr/lib64
             fi
-            # Use Makefile to install system deps including openssl-devel
+            # Use Makefile to install system deps (libcurl, libsasl2, perl, cmake, etc.)
             make setup-deps || echo "Setup deps completed with some warnings"
-            # Use system OpenSSL instead of vendored build (avoids perl-IPC-Cmd dependency)
-            export OPENSSL_NO_VENDOR=1
-            export OPENSSL_DIR=/usr
+            # Ensure vendored OpenSSL build prerequisites are present.
+            # Cargo.toml enables `vendored` on openssl-sys, so OpenSSL is built
+            # from source and does NOT require system openssl headers.
+            if command -v dnf >/dev/null 2>&1; then
+              dnf install -y perl perl-FindBin perl-IPC-Cmd perl-Data-Dumper perl-FindBin perl-podlators perl-Text-ParseWords perl-Time-HiRes perl-File-Path perl-File-Temp perl-File-Basename perl-Getopt-Long perl-Exporter perl-constant 2>&1 | tail -5 || true
+            else
+              yum install -y perl perl-FindBin perl-IPC-Cmd perl-Data-Dumper perl-FindBin perl-podlators perl-Text-ParseWords perl-Time-HiRes perl-File-Path perl-File-Temp perl-File-Basename perl-Getopt-Long perl-Exporter perl-constant 2>&1 | tail -5 || true
+            fi
+            # Ensure perl is on PATH (vendored OpenSSL build relies on perl)
+            if command -v perl >/dev/null 2>&1; then
+              echo "perl found: $(perl -v | head -n2 | tail -n1)"
+            else
+              echo "WARNING: perl not found, vendored OpenSSL build may fail"
+            fi
+            # Unset any prior OpenSSL overrides so Cargo's `vendored` feature
+            # is used (matches Cargo.toml configuration).
+            unset OPENSSL_NO_VENDOR
+            unset OPENSSL_DIR
+            unset OPENSSL_INCLUDE_DIR
+            unset OPENSSL_LIB_DIR
             # Configure correct Python version for maturin
             PYTHON_VER="${{ matrix.python }}"
             PYTHON_MAJOR=$(echo "$PYTHON_VER" | cut -d. -f1)

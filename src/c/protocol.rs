@@ -383,21 +383,19 @@ pub extern "C" fn ri_protocol_manager_send(
     if manager.is_null() || target.is_null() || data.is_null() || out_response.is_null() || out_len.is_null() {
         return -1;
     }
-    unsafe {
-        let target_str = match std::ffi::CStr::from_ptr(target).to_str() {
-            Ok(s) => s,
-            Err(_) => return -2,
-        };
-        let data_slice = std::slice::from_raw_parts(data as *const u8, data_len);
-        let response = (*manager).inner.send_message(target_str, data_slice);
-        *out_len = response.len();
-        match std::ffi::CString::new(response) {
-            Ok(c_str) => {
-                *out_response = c_str.into_raw();
-                0
-            }
-            Err(_) => -3,
+    let target_str = match unsafe { std::ffi::CStr::from_ptr(target).to_str() } {
+        Ok(s) => s,
+        Err(_) => return -2,
+    };
+    let data_slice = unsafe { std::slice::from_raw_parts(data as *const u8, data_len) };
+    let response = unsafe { (*manager).inner.send_message(target_str, data_slice) };
+    *out_len = response.len();
+    match std::ffi::CString::new(response) {
+        Ok(c_str) => {
+            *out_response = c_str.into_raw();
+            0
         }
+        Err(_) => -3,
     }
 }
 
@@ -443,13 +441,7 @@ pub extern "C" fn ri_protocol_manager_get_connection_count(manager: *mut CRiProt
     if manager.is_null() {
         return 0;
     }
-    let rt = match tokio::runtime::Runtime::new() {
-        Ok(rt) => rt,
-        Err(_) => return 0,
-    };
-    unsafe {
-        rt.block_on(async { (*manager).inner.connections.read().await.len() })
-    }
+    unsafe { (*manager).inner.get_connection_count() }
 }
 
 // RiFrame C bindings

@@ -672,16 +672,36 @@ impl RiProtocolManager {
         
         Ok(())
     }
-    
-    /// Send message (sync version for Python)
+}
+
+impl RiProtocolManager {
+    pub fn new() -> Self {
+        Self {
+            stats: Arc::new(RwLock::new(RiProtocolStats::new())),
+            default_protocol: RiProtocolType::Global,
+            connections: Arc::new(RwLock::new(FxHashMap::default())),
+            sequence_counter: Arc::new(AtomicU64::new(0)),
+            initialized: Arc::new(RwLock::new(false)),
+        }
+    }
+
+    /// Returns the number of currently registered connections.
+    pub fn get_connection_count(&self) -> usize {
+        self.connections
+            .try_read()
+            .map(|guard| guard.len())
+            .unwrap_or(0)
+    }
+
+    /// Send message (sync version, also exposed via C FFI and Python).
     pub fn send_message(&self, target: &str, data: &[u8]) -> Vec<u8> {
         let timestamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap_or_default()
             .as_millis() as u64;
-        
+
         let sequence = self.sequence_counter.fetch_add(1, Ordering::SeqCst);
-        
+
         let frame = RiFrame {
             header: RiFrameHeader {
                 version: 1,
@@ -696,7 +716,7 @@ impl RiProtocolManager {
             source_id: String::from("protocol_manager"),
             target_id: target.to_string(),
         };
-        
+
         let serialized = match serde_json::to_vec(&frame) {
             Ok(serialized_data) => serialized_data,
             Err(e) => {
@@ -714,14 +734,14 @@ impl RiProtocolManager {
                     .unwrap_or_else(|_| b"{\"success\":false,\"error\":\"Serialization failed\"}".to_vec());
             }
         };
-        
+
         let payload_len = serialized.len();
         if let Ok(mut stats) = self.stats.try_write() {
             stats.record_sent(payload_len);
         }
-        
+
         let response_data = self.build_response_data(target, &frame, sequence, timestamp);
-        
+
         let response = RiProtocolResponse {
             success: true,
             sequence_number: sequence,
@@ -729,18 +749,18 @@ impl RiProtocolManager {
             response_data,
             timestamp,
         };
-        
+
         self.stats.try_write()
             .map(|mut stats| stats.record_received(response.response_data.len()))
             .map_err(|e| tracing::error!("Failed to update protocol stats: {}", e))
             .ok();
-        
+
         serde_json::to_vec(&response).unwrap_or_else(|_| b"{\"success\":true,\"message\":\"Message sent\"}".to_vec())
     }
-    
+
     fn build_response_data(&self, target: &str, frame: &RiFrame, sequence: u64, timestamp: u64) -> Vec<u8> {
         let mut response = FxHashMap::<String, serde_json::Value>::new();
-        
+
         response.insert("status".to_string(), serde_json::Value::String("delivered".to_string()));
         response.insert("target".to_string(), serde_json::Value::String(target.to_string()));
         response.insert("source".to_string(), serde_json::Value::String(frame.source_id.clone()));
@@ -749,47 +769,35 @@ impl RiProtocolManager {
         response.insert("frame_type".to_string(), serde_json::Value::String(format!("{:?}", frame.header.frame_type)));
         response.insert("payload_size".to_string(), serde_json::Value::Number(serde_json::Number::from(frame.payload.len())));
         response.insert("protocol".to_string(), serde_json::Value::String(format!("{:?}", self.default_protocol)));
-        
+
         let delivery_info = serde_json::json!({
             "delivered_at": timestamp,
             "hops": 1,
             "route": [frame.source_id.clone(), target.to_string()]
         });
         response.insert("delivery".to_string(), delivery_info);
-        
+
         serde_json::to_vec(&response).unwrap_or_default()
     }
-    
-    /// Send message with flags (sync version for Python)
+
+    /// Send message with flags (sync version).
     pub fn send_message_with_flags(&self, target: &str, data: &[u8], _flags: RiMessageFlags) -> Vec<u8> {
         self.send_message(target, data)
     }
-    
-    /// Get connection info (sync version for Python)
+
+    /// Get connection info (sync version).
     pub fn get_connection_info(&self, connection_id: &str) -> Option<RiConnectionInfo> {
         self.connections.try_read()
             .ok()
             .and_then(|connections| connections.get(connection_id).cloned())
     }
-    
-    /// Close connection (sync version for Python)
+
+    /// Close connection (sync version).
     pub fn close_connection(&mut self, connection_id: &str) -> bool {
         self.connections.try_write()
             .ok()
             .map(|mut connections| connections.remove(connection_id).is_some())
             .unwrap_or(false)
-    }
-}
-
-impl RiProtocolManager {
-    pub fn new() -> Self {
-        Self {
-            stats: Arc::new(RwLock::new(RiProtocolStats::new())),
-            default_protocol: RiProtocolType::Global,
-            connections: Arc::new(RwLock::new(FxHashMap::default())),
-            sequence_counter: Arc::new(AtomicU64::new(0)),
-            initialized: Arc::new(RwLock::new(false)),
-        }
     }
 }
 

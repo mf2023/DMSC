@@ -487,7 +487,7 @@ pub extern "C" fn ri_system_metrics_get_cpu_usage(metrics: *mut CRiSystemMetrics
     if metrics.is_null() {
         return 0.0;
     }
-    unsafe { (*metrics).inner.cpu.usage }
+    unsafe { (*metrics).inner.cpu.total_usage_percent }
 }
 
 #[cfg(feature = "system_info")]
@@ -496,7 +496,7 @@ pub extern "C" fn ri_system_metrics_get_memory_used(metrics: *mut CRiSystemMetri
     if metrics.is_null() {
         return 0;
     }
-    unsafe { (*metrics).inner.memory.used }
+    unsafe { (*metrics).inner.memory.used_bytes }
 }
 
 #[cfg(feature = "system_info")]
@@ -505,7 +505,7 @@ pub extern "C" fn ri_system_metrics_get_memory_total(metrics: *mut CRiSystemMetr
     if metrics.is_null() {
         return 0;
     }
-    unsafe { (*metrics).inner.memory.total }
+    unsafe { (*metrics).inner.memory.total_bytes }
 }
 
 #[cfg(feature = "system_info")]
@@ -514,7 +514,7 @@ pub extern "C" fn ri_system_metrics_get_disk_used(metrics: *mut CRiSystemMetrics
     if metrics.is_null() {
         return 0;
     }
-    unsafe { (*metrics).inner.disk.used }
+    unsafe { (*metrics).inner.disk.used_bytes }
 }
 
 #[cfg(feature = "system_info")]
@@ -523,7 +523,7 @@ pub extern "C" fn ri_system_metrics_get_disk_total(metrics: *mut CRiSystemMetric
     if metrics.is_null() {
         return 0;
     }
-    unsafe { (*metrics).inner.disk.total }
+    unsafe { (*metrics).inner.disk.total_bytes }
 }
 
 #[cfg(feature = "system_info")]

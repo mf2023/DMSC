@@ -500,7 +500,7 @@ pub struct RiPerformanceMetrics {
 /// CPU metrics.
 ///
 /// This struct represents CPU usage metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[cfg_attr(feature = "pyo3", pyo3::prelude::pyclass(get_all))]
 pub struct RiCPUMetrics {
     /// Total CPU usage percentage
@@ -516,7 +516,7 @@ pub struct RiCPUMetrics {
 /// Memory metrics.
 ///
 /// This struct represents memory usage metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[cfg_attr(feature = "pyo3", pyo3::prelude::pyclass(get_all))]
 pub struct RiMemoryMetrics {
     /// Total memory in bytes
@@ -540,7 +540,7 @@ pub struct RiMemoryMetrics {
 /// Disk metrics.
 ///
 /// This struct represents disk usage metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[cfg_attr(feature = "pyo3", pyo3::prelude::pyclass(get_all))]
 pub struct RiDiskMetrics {
     /// Total disk space in bytes
@@ -564,7 +564,7 @@ pub struct RiDiskMetrics {
 /// Network metrics.
 ///
 /// This struct represents network usage metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[cfg_attr(feature = "pyo3", pyo3::prelude::pyclass(get_all))]
 pub struct RiNetworkMetrics {
     /// Total bytes received
@@ -588,7 +588,7 @@ pub struct RiNetworkMetrics {
 /// System metrics snapshot.
 ///
 /// This struct represents a snapshot of system metrics at a specific point in time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[cfg_attr(feature = "pyo3", pyo3::prelude::pyclass)]
 pub struct RiSystemMetrics {
     /// CPU metrics
