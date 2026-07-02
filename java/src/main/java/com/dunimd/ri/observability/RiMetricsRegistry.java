@@ -88,8 +88,4 @@ public class RiMetricsRegistry {
     protected void finalize() {
         close();
     }
-    
-    private RiMetric(long ptr) {
-        this.nativePtr = ptr;
-    }
 }

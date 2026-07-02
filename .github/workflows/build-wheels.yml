@@ -1531,7 +1531,8 @@ jobs:
                 krb5-devel \
                 cyrus-sasl-devel \
                 zlib-devel \
-                2>&1 | tail -10 || true
+                libsasl2-devel \
+                2>&1 | tail -20 || true
             else
               # Fallback for manylinux_2_17 (CentOS 7) if it is ever
               # re-enabled in the future.
@@ -1551,8 +1552,18 @@ jobs:
                 krb5-devel \
                 cyrus-sasl-devel \
                 zlib-devel \
-                2>&1 | tail -10 || true
+                libsasl2-devel \
+                2>&1 | tail -20 || true
             fi
+            # Verify the critical dev packages are installed
+            echo "=== Verifying dev package install ==="
+            for pkg in openssl-devel krb5-devel cyrus-sasl-devel zlib-devel libsasl2-devel; do
+              if rpm -q "$pkg" >/dev/null 2>&1; then
+                echo "  OK: $pkg installed: $(rpm -q $pkg)"
+              else
+                echo "  MISSING: $pkg NOT installed"
+              fi
+            done
             # Refresh Cargo.lock so the in-container `cargo build` does not
             # have to update the registry for a stale lock entry (e.g. oqs
             # bumped in Cargo.toml). Updating here, before the cargo build

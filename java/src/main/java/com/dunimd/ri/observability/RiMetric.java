@@ -32,7 +32,13 @@ public class RiMetric {
     public RiMetric(RiMetricConfig config) {
         this.nativePtr = new0(config.getNativePtr());
     }
-    
+
+    // Package-private constructor used by RiMetricsRegistry to wrap a
+    // native pointer returned from Rust (e.g. registry.get -> new RiMetric(ptr)).
+    RiMetric(long ptr) {
+        this.nativePtr = ptr;
+    }
+
     private native long new0(long configPtr);
     
     long getNativePtr() {

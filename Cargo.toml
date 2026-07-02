@@ -468,13 +468,18 @@ sm-crypto = { version = "0.1", optional = true }
 openssl-sys = { version = "0.9", optional = true }
 
 # Kafka client library for non-Windows platforms
-# Uses gssapi-vendored for Kerberos authentication on Linux/macOS.
-# ssl-vendored is intentionally NOT enabled: rdkafka's vendored OpenSSL
-# requires perl-IPC-Cmd to build, and manylinux_2_28 (AlmaLinux 8) does
-# not ship it by default. Instead we link against the system OpenSSL via
-# the `ssl` feature and rely on $OPENSSL_DIR=/usr + $PKG_CONFIG_PATH
-# (set in build-wheels.yml container-env) to find it.
-rdkafka = { version = "0.38", default-features = false, features = ["tokio", "cmake-build", "ssl", "gssapi-vendored"], optional = true }
+# Uses the system GSSAPI (MIT Kerberos) and Cyrus SASL via pkg-config.
+# - ssl-vendored is intentionally NOT enabled: rdkafka's vendored OpenSSL
+#   requires perl-IPC-Cmd to build, and manylinux_2_28 (AlmaLinux 8) does
+#   not ship it by default. Instead we link against the system OpenSSL via
+#   the `ssl` feature and rely on $OPENSSL_DIR=/usr + $PKG_CONFIG_PATH
+#   (set in build-wheels.yml container-env) to find it.
+# - gssapi-vendored is intentionally NOT enabled: it would force a static
+#   link of vendored Cyrus SASL inside librdkafka, which in turn requires
+#   krb5 and cyrus-sasl headers. With `gssapi` (the default), librdkafka
+#   picks up the system libgssapi_krb5 and libsasl2 via pkg-config, which
+#   we install via dnf in the CI image.
+rdkafka = { version = "0.38", default-features = false, features = ["tokio", "cmake-build", "ssl", "gssapi", "sasl"], optional = true }
 
 [target.'cfg(windows)'.dependencies]
 # Kafka client library for Windows
