@@ -35,7 +35,9 @@ public class RiRouteAction {
     public static final int TYPE_REDIRECT = 1;
     public static final int TYPE_DIRECT_RESPONSE = 2;
     
-    private RiRouteAction(long ptr) {
+    // Package-private constructor used by RiTrafficRoute to wrap a
+    // native pointer returned from Rust.
+    RiRouteAction(long ptr) {
         this.nativePtr = ptr;
     }
     

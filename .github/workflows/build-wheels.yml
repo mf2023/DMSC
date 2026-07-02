@@ -1515,15 +1515,27 @@ jobs:
             # entirely and rely on the fresh dnf repos that come with
             # AlmaLinux 8.
             if command -v dnf >/dev/null 2>&1; then
+              # Critical packages — must succeed or cargo build will fail
+              # with "openssl/opensslv.h: No such file or directory".
+              # We disable the `| tail -20 || true` swallow so a real
+              # failure (e.g. a stale dnf cache, repo 404, missing
+              # openssl-devel in the repo) aborts the step instead of
+              # being silently hidden.
+              ( set -e
+                dnf install -y \
+                  openssl-devel \
+                  openssl-libs \
+                  pkgconfig \
+                  perl-IPC-Cmd \
+                  perl-core \
+                  make \
+                  gcc \
+                  gcc-c++ \
+                  2>&1 | tail -40
+              )
+              # Optional packages — failures here are tolerated because
+              # some are in EPEL/CodeReady that may not be enabled.
               dnf install -y \
-                openssl-devel \
-                openssl-libs \
-                pkgconfig \
-                perl-IPC-Cmd \
-                perl-core \
-                make \
-                gcc \
-                gcc-c++ \
                 cmake \
                 clang \
                 llvm \
@@ -1536,15 +1548,19 @@ jobs:
             else
               # Fallback for manylinux_2_17 (CentOS 7) if it is ever
               # re-enabled in the future.
+              ( set -e
+                yum install -y \
+                  openssl-devel \
+                  openssl-libs \
+                  pkgconfig \
+                  perl-IPC-Cmd \
+                  perl-core \
+                  make \
+                  gcc \
+                  gcc-c++ \
+                  2>&1 | tail -40
+              )
               yum install -y \
-                openssl-devel \
-                openssl-libs \
-                pkgconfig \
-                perl-IPC-Cmd \
-                perl-core \
-                make \
-                gcc \
-                gcc-c++ \
                 cmake \
                 clang \
                 llvm \
@@ -1555,15 +1571,20 @@ jobs:
                 libsasl2-devel \
                 2>&1 | tail -20 || true
             fi
-            # Verify the critical dev packages are installed
-            echo "=== Verifying dev package install ==="
-            for pkg in openssl-devel krb5-devel cyrus-sasl-devel zlib-devel libsasl2-devel; do
-              if rpm -q "$pkg" >/dev/null 2>&1; then
-                echo "  OK: $pkg installed: $(rpm -q $pkg)"
-              else
-                echo "  MISSING: $pkg NOT installed"
-              fi
-            done
+            # Critical: openssl-sys needs the OpenSSL development headers
+            # to be present at this exact path because $OPENSSL_DIR=/usr
+            # is set via container-env. If the dnf install above failed
+            # silently, abort now with a clear message instead of letting
+            # cargo build crash with a confusing compiler error.
+            if [ ! -f /usr/include/openssl/opensslv.h ]; then
+              echo "FATAL: /usr/include/openssl/opensslv.h not found"
+              echo "dnf/yum install of openssl-devel did not produce the"
+              echo "expected development headers. Listing installed OpenSSL"
+              echo "packages and searching for any opensslv.h on the system:"
+              rpm -qa 2>/dev/null | grep -i ssl | head -20 || true
+              find / -name "opensslv.h" 2>/dev/null | head -10 || true
+              exit 1
+            fi
             # Refresh Cargo.lock so the in-container `cargo build` does not
             # have to update the registry for a stale lock entry (e.g. oqs
             # bumped in Cargo.toml). Updating here, before the cargo build

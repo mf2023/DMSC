@@ -33,7 +33,9 @@ public class RiCircuitBreakerMetrics {
         this.nativePtr = new0(state, failureCount, successCount, consecutiveFailures, consecutiveSuccesses);
     }
     
-    private RiCircuitBreakerMetrics(long ptr) {
+    // Package-private constructor used by RiCircuitBreaker to wrap a
+    // native pointer returned from Rust.
+    RiCircuitBreakerMetrics(long ptr) {
         this.nativePtr = ptr;
     }
     

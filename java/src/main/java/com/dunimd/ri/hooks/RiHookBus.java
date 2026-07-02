@@ -34,7 +34,13 @@ public class RiHookBus {
     public RiHookBus() {
         this.nativePtr = new0();
     }
-    
+
+    // Package-private constructor used by RiServiceContext to wrap a
+    // native pointer returned from Rust.
+    RiHookBus(long ptr) {
+        this.nativePtr = ptr;
+    }
+
     private native long new0();
     
     public void close() {

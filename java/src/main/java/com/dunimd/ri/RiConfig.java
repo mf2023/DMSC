@@ -50,7 +50,9 @@ public class RiConfig {
     
     private static native long fromYaml0(String yaml);
     
-    private RiConfig(long ptr) {
+    // Package-private constructor used by RiServiceContext to wrap a
+    // native pointer returned from Rust.
+    RiConfig(long ptr) {
         this.nativePtr = ptr;
     }
     

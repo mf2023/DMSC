@@ -34,7 +34,13 @@ public class RiLogger {
     public RiLogger() {
         this.nativePtr = new0();
     }
-    
+
+    // Package-private constructor used by RiServiceContext to wrap a
+    // native pointer returned from Rust.
+    RiLogger(long ptr) {
+        this.nativePtr = ptr;
+    }
+
     private native long new0();
     
     public void close() {

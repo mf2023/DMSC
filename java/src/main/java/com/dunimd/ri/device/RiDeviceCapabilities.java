@@ -140,8 +140,17 @@ public class RiDeviceCapabilities {
     public boolean meetsRequirements(RiDeviceCapabilities requirements) {
         return meetsRequirements0(nativePtr, requirements.nativePtr);
     }
-    
+
     private native boolean meetsRequirements0(long ptr, long requirementsPtr);
+
+    /**
+     * Get the native pointer.
+     * Package-private: used by other classes in the device package to
+     * pass the capabilities to Rust.
+     */
+    long getNativePtr() {
+        return nativePtr;
+    }
     
     /**
      * Release native resources.

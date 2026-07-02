@@ -33,7 +33,9 @@ public class RiLoadBalancerServerStats {
         this.nativePtr = new0(activeConnections, totalRequests, failedRequests, responseTimeMs);
     }
     
-    private RiLoadBalancerServerStats(long ptr) {
+    // Package-private constructor used by RiLoadBalancer to wrap a
+    // native pointer returned from Rust.
+    RiLoadBalancerServerStats(long ptr) {
         this.nativePtr = ptr;
     }
     

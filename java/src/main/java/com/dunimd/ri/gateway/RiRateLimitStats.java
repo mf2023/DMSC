@@ -33,7 +33,9 @@ public class RiRateLimitStats {
         this.nativePtr = new0(currentTokens, totalRequests);
     }
     
-    private RiRateLimitStats(long ptr) {
+    // Package-private constructor used by RiRateLimiter to wrap a
+    // native pointer returned from Rust.
+    RiRateLimitStats(long ptr) {
         this.nativePtr = ptr;
     }
     
