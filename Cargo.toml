@@ -459,10 +459,13 @@ sm-crypto = { version = "0.1", optional = true }
 # Dependencies that are only available or needed on specific operating systems.
 
 [target.'cfg(not(windows))'.dependencies]
-# OpenSSL native library bindings with vendored feature
-# Required for secure TLS connections on non-Windows platforms
-# The vendored feature builds OpenSSL from source, avoiding system dependency issues
-openssl-sys = { version = "0.9", features = ["vendored"], optional = true }
+# OpenSSL native library bindings.
+# Required for secure TLS connections on non-Windows platforms.
+# We deliberately do NOT enable the `vendored` feature: it requires perl +
+# IPC::Cmd at build time, which is unreliable in stripped manylinux_2_17
+# (CentOS 7) images. The build environment must provide libssl-dev /
+# openssl-devel instead.
+openssl-sys = { version = "0.9", optional = true }
 
 # Kafka client library for non-Windows platforms
 # Uses gssapi-vendored for Kerberos authentication on Linux/macOS

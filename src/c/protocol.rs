@@ -389,10 +389,10 @@ pub extern "C" fn ri_protocol_manager_send(
     };
     let data_slice = unsafe { std::slice::from_raw_parts(data as *const u8, data_len) };
     let response = unsafe { (*manager).inner.send_message(target_str, data_slice) };
-    *out_len = response.len();
+    unsafe { *out_len = response.len(); }
     match std::ffi::CString::new(response) {
         Ok(c_str) => {
-            *out_response = c_str.into_raw();
+            unsafe { *out_response = c_str.into_raw(); }
             0
         }
         Err(_) => -3,

@@ -251,8 +251,15 @@ jobs:
           echo "OPENSSL_LIB_DIR=C:\vcpkg\installed\x64-windows\lib" >> $env:GITHUB_ENV
           echo "OPENSSL_NO_VENDOR=1" >> $env:GITHUB_ENV
 
+      - name: Sync Cargo.lock with Cargo.toml
+        shell: bash
+        run: cargo update -p oqs
+
       - name: Build CLI
         run: make build-cli-windows-x64
+        env:
+          CARGO_NET_RETRY: '10'
+          CARGO_NET_TIMEOUT: '300'
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -307,8 +314,15 @@ jobs:
           echo "OPENSSL_LIB_DIR=C:\vcpkg\installed\arm64-windows\lib" >> $env:GITHUB_ENV
           echo "OPENSSL_NO_VENDOR=1" >> $env:GITHUB_ENV
 
+      - name: Sync Cargo.lock with Cargo.toml
+        shell: bash
+        run: cargo update -p oqs
+
       - name: Build CLI
         run: make build-cli-windows-arm64
+        env:
+          CARGO_NET_RETRY: '10'
+          CARGO_NET_TIMEOUT: '300'
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -419,8 +433,19 @@ jobs:
       - name: Install system dependencies
         run: make setup-deps
 
+      - name: Sync Cargo.lock with Cargo.toml
+        # Regenerate the lock file for any dependencies whose version changed in
+        # Cargo.toml (e.g. oqs 0.11 -> 0.10) so that downstream `cargo build`
+        # can resolve packages without hitting the registry for outdated entries.
+        run: cargo update -p oqs
+
       - name: Build
         run: make build-linux-x64
+        env:
+          # Make cargo more resilient to transient network failures when
+          # downloading the new dependency graph from crates.io.
+          CARGO_NET_RETRY: '10'
+          CARGO_NET_TIMEOUT: '300'
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -452,8 +477,14 @@ jobs:
       - name: Install system dependencies
         run: make setup-deps
 
+      - name: Sync Cargo.lock with Cargo.toml
+        run: cargo update -p oqs
+
       - name: Build
         run: make build-linux-arm64
+        env:
+          CARGO_NET_RETRY: '10'
+          CARGO_NET_TIMEOUT: '300'
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -505,8 +536,15 @@ jobs:
           echo "OPENSSL_DIR=C:\vcpkg\installed\x64-windows" >> $env:GITHUB_ENV
           echo "OPENSSL_NO_VENDOR=1" >> $env:GITHUB_ENV
 
+      - name: Sync Cargo.lock with Cargo.toml
+        shell: bash
+        run: cargo update -p oqs
+
       - name: Build
         run: make build-windows-x64
+        env:
+          CARGO_NET_RETRY: '10'
+          CARGO_NET_TIMEOUT: '300'
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -539,8 +577,14 @@ jobs:
       - name: Install dependencies
         run: brew install --quiet cmake pkg-config openssl
 
+      - name: Sync Cargo.lock with Cargo.toml
+        run: cargo update -p oqs
+
       - name: Build Rust library
         run: make build-macos-x64
+        env:
+          CARGO_NET_RETRY: '10'
+          CARGO_NET_TIMEOUT: '300'
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -573,8 +617,14 @@ jobs:
       - name: Install dependencies
         run: brew install --quiet cmake pkg-config openssl
 
+      - name: Sync Cargo.lock with Cargo.toml
+        run: cargo update -p oqs
+
       - name: Build Rust library
         run: make build-macos-arm64
+        env:
+          CARGO_NET_RETRY: '10'
+          CARGO_NET_TIMEOUT: '300'
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -627,8 +677,15 @@ jobs:
           echo "OPENSSL_DIR=C:\vcpkg\installed\arm64-windows" >> $env:GITHUB_ENV
           echo "OPENSSL_NO_VENDOR=1" >> $env:GITHUB_ENV
 
+      - name: Sync Cargo.lock with Cargo.toml
+        shell: bash
+        run: cargo update -p oqs
+
       - name: Build Rust library
         run: make build-windows-arm64
+        env:
+          CARGO_NET_RETRY: '10'
+          CARGO_NET_TIMEOUT: '300'
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -671,8 +728,14 @@ jobs:
       - name: Install system dependencies
         run: make setup-deps
 
+      - name: Sync Cargo.lock with Cargo.toml
+        run: cargo update -p oqs
+
       - name: Build C static library
         run: make build-c-linux-x64
+        env:
+          CARGO_NET_RETRY: '10'
+          CARGO_NET_TIMEOUT: '300'
 
       - name: Upload C library artifact
         uses: actions/upload-artifact@v4
@@ -706,8 +769,14 @@ jobs:
       - name: Install system dependencies
         run: make setup-deps
 
+      - name: Sync Cargo.lock with Cargo.toml
+        run: cargo update -p oqs
+
       - name: Build C static library
         run: make build-c-linux-arm64
+        env:
+          CARGO_NET_RETRY: '10'
+          CARGO_NET_TIMEOUT: '300'
 
       - name: Upload C library artifact
         uses: actions/upload-artifact@v4
@@ -761,8 +830,15 @@ jobs:
           echo "OPENSSL_DIR=C:\vcpkg\installed\x64-windows" >> $env:GITHUB_ENV
           echo "OPENSSL_NO_VENDOR=1" >> $env:GITHUB_ENV
 
+      - name: Sync Cargo.lock with Cargo.toml
+        shell: bash
+        run: cargo update -p oqs
+
       - name: Build C static library
         run: make build-c-windows-x64
+        env:
+          CARGO_NET_RETRY: '10'
+          CARGO_NET_TIMEOUT: '300'
 
       - name: Upload C library artifact
         uses: actions/upload-artifact@v4
@@ -797,8 +873,14 @@ jobs:
       - name: Install dependencies
         run: brew install --quiet cmake pkg-config openssl
 
+      - name: Sync Cargo.lock with Cargo.toml
+        run: cargo update -p oqs
+
       - name: Build C static library
         run: make build-c-macos-x64
+        env:
+          CARGO_NET_RETRY: '10'
+          CARGO_NET_TIMEOUT: '300'
 
       - name: Upload C library artifact
         uses: actions/upload-artifact@v4
@@ -833,8 +915,14 @@ jobs:
       - name: Install dependencies
         run: brew install --quiet cmake pkg-config openssl
 
+      - name: Sync Cargo.lock with Cargo.toml
+        run: cargo update -p oqs
+
       - name: Build C static library
         run: make build-c-macos-arm64
+        env:
+          CARGO_NET_RETRY: '10'
+          CARGO_NET_TIMEOUT: '300'
 
       - name: Upload C library artifact
         uses: actions/upload-artifact@v4
@@ -889,8 +977,15 @@ jobs:
           echo "OPENSSL_DIR=C:\vcpkg\installed\arm64-windows" >> $env:GITHUB_ENV
           echo "OPENSSL_NO_VENDOR=1" >> $env:GITHUB_ENV
 
+      - name: Sync Cargo.lock with Cargo.toml
+        shell: bash
+        run: cargo update -p oqs
+
       - name: Build C static library
         run: make build-c-windows-arm64
+        env:
+          CARGO_NET_RETRY: '10'
+          CARGO_NET_TIMEOUT: '300'
 
       - name: Upload C library artifact
         uses: actions/upload-artifact@v4
@@ -1018,42 +1113,47 @@ jobs:
       matrix:
         include:
           # Linux x64: 7 Python versions (3.8-3.14)
-          # Uses manylinux_2_17 container for glibc 2.17+ compatibility
-          # Supports: Ubuntu 18.04+, CentOS 7+, Debian 9+, RHEL 7+
+          # Uses manylinux_2_28 container (AlmaLinux 8 base).
+          # Why not manylinux_2_17 (CentOS 7)? CentOS 7 is EOL and its yum
+          # repositories have been moved to vault.centos.org; `yum install`
+          # in a fresh manylinux_2_17 image often fails because the base
+          # repos return 404. manylinux_2_28 is built on AlmaLinux 8, whose
+          # repositories are still active, so `dnf install` works reliably.
+          # Supports: glibc 2.28+ (RHEL 8+, Ubuntu 20.04+, Debian 10+).
           - python: '3.8'
             runs-on: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            manylinux: manylinux_2_17
+            manylinux: manylinux_2_28
             docker: true
           - python: '3.9'
             runs-on: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            manylinux: manylinux_2_17
+            manylinux: manylinux_2_28
             docker: true
           - python: '3.10'
             runs-on: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            manylinux: manylinux_2_17
+            manylinux: manylinux_2_28
             docker: true
           - python: '3.11'
             runs-on: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            manylinux: manylinux_2_17
+            manylinux: manylinux_2_28
             docker: true
           - python: '3.12'
             runs-on: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            manylinux: manylinux_2_17
+            manylinux: manylinux_2_28
             docker: true
           - python: '3.13'
             runs-on: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            manylinux: manylinux_2_17
+            manylinux: manylinux_2_28
             docker: true
           - python: '3.14'
             runs-on: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            manylinux: manylinux_2_17
+            manylinux: manylinux_2_28
             docker: true
 
           # Linux ARM64: 7 Python versions (3.8-3.14)
@@ -1297,16 +1397,15 @@ jobs:
             pip-${{ matrix.python }}-
 
       - name: Cache Rust dependencies
-        uses: actions/cache@v4
+        uses: Swatinem/rust-cache@v2
         with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: rust-${{ matrix.target }}-${{ hashFiles('**/Cargo.toml') }}
-          restore-keys: |
-            rust-${{ matrix.target }}-
-            rust-
+          # Use Cargo.lock (not Cargo.toml) as the cache key so a Cargo.toml
+          # bump that doesn't actually change the lock still reuses the
+          # registry cache. This makes cargo fetch in the next step much
+          # faster on cache hits.
+          cache-on-failure: true
+          shared-key: ${{ matrix.target }}
+          save-if: ${{ github.ref == 'refs/heads/main' || github.event_name == 'pull_request' }}
 
       - name: Configure static linking
         if: runner.os == 'Linux'
@@ -1327,13 +1426,50 @@ jobs:
       - name: Install dependencies
         run: pip install maturin auditwheel -i https://pypi.org/simple --quiet
 
+      - name: Sync Cargo.lock and prefetch dependencies
+        # Refresh the lock file in case any direct dependency version in
+        # Cargo.toml (e.g. oqs) was bumped, and prefetch all source tarballs
+        # so the downstream cargo build does not have to re-download them
+        # over the network. Transient crates.io errors (e.g. curl 16
+        # "HTTP/2 framing layer") are common on GitHub-hosted runners, so
+        # both steps are wrapped in a retry loop.
+        shell: bash
+        run: |
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            echo "=== cargo update attempt $i ==="
+            if cargo update -p oqs; then
+              echo "cargo update succeeded on attempt $i"
+              break
+            fi
+            echo "cargo update attempt $i failed, sleeping before retry..."
+            sleep $((i * 5))
+          done
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            echo "=== cargo fetch attempt $i ==="
+            if cargo fetch; then
+              echo "cargo fetch succeeded on attempt $i"
+              break
+            fi
+            echo "cargo fetch attempt $i failed, sleeping before retry..."
+            sleep $((i * 5))
+          done
+        env:
+          CARGO_NET_RETRY: '10'
+          CARGO_NET_TIMEOUT: '300'
+
       - name: Build wheel (non-Docker, non-Windows-ARM64)
         if: matrix.docker != true && matrix.target != 'aarch64-pc-windows-msvc'
         run: make build-python TARGET=${{ matrix.target }}
+        env:
+          CARGO_NET_RETRY: '10'
+          CARGO_NET_TIMEOUT: '300'
 
       - name: Build wheel (Windows ARM64 - no protocol/oqs)
         if: matrix.target == 'aarch64-pc-windows-msvc'
         run: make build-python TARGET=${{ matrix.target }} PLATFORM=windows ARCH=arm64
+        env:
+          CARGO_NET_RETRY: '10'
+          CARGO_NET_TIMEOUT: '300'
 
       - name: Build Linux wheel with manylinux
         if: matrix.docker == true
@@ -1352,26 +1488,64 @@ jobs:
             if [ -f /opt/rh/llvm-toolset-7/root/usr/lib64/libclang.so ]; then
               export LIBCLANG_PATH=/opt/rh/llvm-toolset-7/root/usr/lib64
             fi
-            # Use Makefile to install system deps (libcurl, libsasl2, perl, cmake, etc.)
+            # manylinux_2_17 is built on CentOS 7 which reached EOL on 2024-06-30.
+            # The default yum repos have been retired. Configure the CentOS Vault
+            # repo so that `yum install openssl-devel` actually resolves a
+            # package. We disable the existing base/updates repos to avoid
+            # 404 responses and use vault.centos.org which is the official
+            # archive for the EOL CentOS 7.9.2009 release.
+            cat > /etc/yum.repos.d/CentOS-Vault.repo <<'VAULT_EOF'
+            [C7.9-base]
+            name=CentOS-7.9.2009 - Base
+            baseurl=http://vault.centos.org/7.9.2009/os/$basearch/
+            gpgcheck=1
+            gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+            enabled=1
+            [C7.9-updates]
+            name=CentOS-7.9.2009 - Updates
+            baseurl=http://vault.centos.org/7.9.2009/updates/$basearch/
+            gpgcheck=1
+            gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+            enabled=1
+            [C7.9-extras]
+            name=CentOS-7.9.2009 - Extras
+            baseurl=http://vault.centos.org/7.9.2009/extras/$basearch/
+            gpgcheck=1
+            gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+            enabled=1
+            VAULT_EOF
+            # Disable the original (retired) CentOS base repo if present
+            if [ -f /etc/yum.repos.d/CentOS-Base.repo ]; then
+              sed -i 's/^enabled=1/enabled=0/' /etc/yum.repos.d/CentOS-Base.repo || true
+            fi
+            # Clean and rebuild the yum cache against the new vault repos
+            yum clean all 2>&1 | tail -3 || true
+            rm -rf /var/cache/yum 2>/dev/null || true
+            # Install the build-time deps using the vault repos. openssl-devel
+            # is required because we removed the `vendored` feature from
+            # openssl-sys in Cargo.toml.
             make setup-deps || echo "Setup deps completed with some warnings"
-            # Ensure vendored OpenSSL build prerequisites are present.
-            # Cargo.toml enables `vendored` on openssl-sys, so OpenSSL is built
-            # from source and does NOT require system openssl headers.
             if command -v dnf >/dev/null 2>&1; then
-              dnf install -y perl perl-FindBin perl-IPC-Cmd perl-Data-Dumper perl-FindBin perl-podlators perl-Text-ParseWords perl-Time-HiRes perl-File-Path perl-File-Temp perl-File-Basename perl-Getopt-Long perl-Exporter perl-constant 2>&1 | tail -5 || true
+              dnf install -y openssl-devel openssl-libs pkgconfig 2>&1 | tail -5 || true
             else
-              yum install -y perl perl-FindBin perl-IPC-Cmd perl-Data-Dumper perl-FindBin perl-podlators perl-Text-ParseWords perl-Time-HiRes perl-File-Path perl-File-Temp perl-File-Basename perl-Getopt-Long perl-Exporter perl-constant 2>&1 | tail -5 || true
+              yum install -y openssl-devel openssl-libs pkgconfig 2>&1 | tail -5 || true
             fi
-            # Ensure perl is on PATH (vendored OpenSSL build relies on perl)
-            if command -v perl >/dev/null 2>&1; then
-              echo "perl found: $(perl -v | head -n2 | tail -n1)"
+            # Refresh Cargo.lock so the in-container `cargo build` does not have
+            # to update the registry for a stale lock entry (e.g. oqs bumped in
+            # Cargo.toml). Updating here, before the cargo build starts, keeps
+            # the build deterministic and resilient to transient network errors.
+            cargo update -p oqs || true
+            # Configure OpenSSL for cargo build to pick up the system library
+            # installed above. We intentionally do NOT set OPENSSL_NO_VENDOR=1
+            # because Cargo.toml no longer enables the vendored feature.
+            if [ -f /usr/include/openssl/opensslv.h ]; then
+              echo "System OpenSSL found at /usr/include/openssl, using it"
+              export OPENSSL_DIR=/usr
             else
-              echo "WARNING: perl not found, vendored OpenSSL build may fail"
+              echo "ERROR: /usr/include/openssl/opensslv.h not found after setup"
+              echo "openssl-sys will fail to compile. Listing OpenSSL packages:"
+              rpm -qa 2>/dev/null | grep -i ssl | head -20 || true
             fi
-            # Unset any prior OpenSSL overrides so Cargo's `vendored` feature
-            # is used (matches Cargo.toml configuration).
-            unset OPENSSL_NO_VENDOR
-            unset OPENSSL_DIR
             unset OPENSSL_INCLUDE_DIR
             unset OPENSSL_LIB_DIR
             # Configure correct Python version for maturin
