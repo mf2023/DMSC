@@ -1474,26 +1474,41 @@ jobs:
       - name: Build Linux wheel with manylinux
         if: matrix.docker == true
         uses: PyO3/maturin-action@v1
-        env:
-          # Force openssl-sys to use the system OpenSSL library rather than
-          # the bundled (vendored) one. This skips the perl Configure step
-          # that needs perl-IPC-Cmd, and works on both CentOS 7 and
-          # AlmaLinux 8 based manylinux images as long as the system has
-          # the openssl headers installed in $OPENSSL_DIR.
-          OPENSSL_NO_VENDOR: '1'
-          OPENSSL_DIR: /usr
-          OPENSSL_STATIC: '0'
-          CARGO_NET_RETRY: '10'
-          CARGO_NET_TIMEOUT: '300'
-          RUST_BACKTRACE: '1'
         with:
           command: build
           target: ${{ matrix.target }}
           manylinux: ${{ matrix.manylinux }}
           maturin-version: v1.8.3
           args: --release -o dist
+          # container-env is the ONLY field that PyO3/maturin-action passes
+          # to the `docker run` invocation. Step-level `env:` is NOT
+          # inherited by cargo when maturin runs it. We set the OpenSSL
+          # flags here so that openssl-sys skips the vendored build (which
+          # needs perl-IPC-Cmd) and rdkafka-sys finds the system OpenSSL
+          # via $OPENSSL_DIR.
+          container-env: |
+            OPENSSL_NO_VENDOR=1
+            OPENSSL_DIR=/usr
+            OPENSSL_STATIC=0
+            CARGO_NET_RETRY=10
+            CARGO_NET_TIMEOUT=300
+            RUST_BACKTRACE=1
+            PKG_CONFIG_PATH=/usr/lib64/pkgconfig:/usr/share/pkgconfig
+            PKG_CONFIG_ALLOW_CROSS=1
           before-script-linux: |
             set +e
+            # Mirror the OpenSSL flags into the shell session so that any
+            # `cargo` invocation in this script (e.g. `cargo update`) sees
+            # the same env as the subsequent `maturin build` (which gets
+            # them via the `container-env:` field above).
+            export OPENSSL_NO_VENDOR=1
+            export OPENSSL_DIR=/usr
+            export OPENSSL_STATIC=0
+            export CARGO_NET_RETRY=10
+            export CARGO_NET_TIMEOUT=300
+            export RUST_BACKTRACE=1
+            export PKG_CONFIG_PATH=/usr/lib64/pkgconfig:/usr/share/pkgconfig
+            export PKG_CONFIG_ALLOW_CROSS=1
             # manylinux_2_28 is based on AlmaLinux 8 (dnf). The older
             # manylinux_2_17 image (CentOS 7) is EOL — its yum repos
             # return 404 from vault.centos.org, so we avoid CentOS Vault
@@ -1513,6 +1528,9 @@ jobs:
                 clang \
                 llvm \
                 libffi-devel \
+                krb5-devel \
+                cyrus-sasl-devel \
+                zlib-devel \
                 2>&1 | tail -10 || true
             else
               # Fallback for manylinux_2_17 (CentOS 7) if it is ever
@@ -1530,6 +1548,9 @@ jobs:
                 clang \
                 llvm \
                 libffi-devel \
+                krb5-devel \
+                cyrus-sasl-devel \
+                zlib-devel \
                 2>&1 | tail -10 || true
             fi
             # Refresh Cargo.lock so the in-container `cargo build` does not
