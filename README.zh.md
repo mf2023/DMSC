@@ -49,7 +49,7 @@
     <img alt="Maven Central" src="https://img.shields.io/badge/Maven-Ri-007396?style=flat-square&logo=apachemaven"/>
 </a>
 
-**Ri (Ri)** — 一个高性能的 Rust 中间件框架，统一后端基础设施。专为企业级规模构建，具有模块化架构、内置可观测性和分布式系统支持。
+**Ri** — 一个高性能的 Rust 中间件框架，统一后端基础设施。专为企业级规模构建，具有模块化架构、内置可观测性和分布式系统支持。
 
 </div>
 

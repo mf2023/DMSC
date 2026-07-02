@@ -1474,6 +1474,18 @@ jobs:
       - name: Build Linux wheel with manylinux
         if: matrix.docker == true
         uses: PyO3/maturin-action@v1
+        env:
+          # Force openssl-sys to use the system OpenSSL library rather than
+          # the bundled (vendored) one. This skips the perl Configure step
+          # that needs perl-IPC-Cmd, and works on both CentOS 7 and
+          # AlmaLinux 8 based manylinux images as long as the system has
+          # the openssl headers installed in $OPENSSL_DIR.
+          OPENSSL_NO_VENDOR: '1'
+          OPENSSL_DIR: /usr
+          OPENSSL_STATIC: '0'
+          CARGO_NET_RETRY: '10'
+          CARGO_NET_TIMEOUT: '300'
+          RUST_BACKTRACE: '1'
         with:
           command: build
           target: ${{ matrix.target }}
@@ -1482,69 +1494,59 @@ jobs:
           args: --release -o dist
           before-script-linux: |
             set +e
-            # Install clang 7 via SCL for oqs-sys bindgen (needs libclang >= 6.0)
-            yum install -y centos-release-scl 2>/dev/null || true
-            yum install -y llvm-toolset-7-clang 2>/dev/null || true
-            if [ -f /opt/rh/llvm-toolset-7/root/usr/lib64/libclang.so ]; then
-              export LIBCLANG_PATH=/opt/rh/llvm-toolset-7/root/usr/lib64
-            fi
-            # manylinux_2_17 is built on CentOS 7 which reached EOL on 2024-06-30.
-            # The default yum repos have been retired. Configure the CentOS Vault
-            # repo so that `yum install openssl-devel` actually resolves a
-            # package. We disable the existing base/updates repos to avoid
-            # 404 responses and use vault.centos.org which is the official
-            # archive for the EOL CentOS 7.9.2009 release.
-            cat > /etc/yum.repos.d/CentOS-Vault.repo <<'VAULT_EOF'
-            [C7.9-base]
-            name=CentOS-7.9.2009 - Base
-            baseurl=http://vault.centos.org/7.9.2009/os/$basearch/
-            gpgcheck=1
-            gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
-            enabled=1
-            [C7.9-updates]
-            name=CentOS-7.9.2009 - Updates
-            baseurl=http://vault.centos.org/7.9.2009/updates/$basearch/
-            gpgcheck=1
-            gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
-            enabled=1
-            [C7.9-extras]
-            name=CentOS-7.9.2009 - Extras
-            baseurl=http://vault.centos.org/7.9.2009/extras/$basearch/
-            gpgcheck=1
-            gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
-            enabled=1
-            VAULT_EOF
-            # Disable the original (retired) CentOS base repo if present
-            if [ -f /etc/yum.repos.d/CentOS-Base.repo ]; then
-              sed -i 's/^enabled=1/enabled=0/' /etc/yum.repos.d/CentOS-Base.repo || true
-            fi
-            # Clean and rebuild the yum cache against the new vault repos
-            yum clean all 2>&1 | tail -3 || true
-            rm -rf /var/cache/yum 2>/dev/null || true
-            # Install the build-time deps using the vault repos. openssl-devel
-            # is required because we removed the `vendored` feature from
-            # openssl-sys in Cargo.toml.
-            make setup-deps || echo "Setup deps completed with some warnings"
+            # manylinux_2_28 is based on AlmaLinux 8 (dnf). The older
+            # manylinux_2_17 image (CentOS 7) is EOL — its yum repos
+            # return 404 from vault.centos.org, so we avoid CentOS Vault
+            # entirely and rely on the fresh dnf repos that come with
+            # AlmaLinux 8.
             if command -v dnf >/dev/null 2>&1; then
-              dnf install -y openssl-devel openssl-libs pkgconfig 2>&1 | tail -5 || true
+              dnf install -y \
+                openssl-devel \
+                openssl-libs \
+                pkgconfig \
+                perl-IPC-Cmd \
+                perl-core \
+                make \
+                gcc \
+                gcc-c++ \
+                cmake \
+                clang \
+                llvm \
+                libffi-devel \
+                2>&1 | tail -10 || true
             else
-              yum install -y openssl-devel openssl-libs pkgconfig 2>&1 | tail -5 || true
+              # Fallback for manylinux_2_17 (CentOS 7) if it is ever
+              # re-enabled in the future.
+              yum install -y \
+                openssl-devel \
+                openssl-libs \
+                pkgconfig \
+                perl-IPC-Cmd \
+                perl-core \
+                make \
+                gcc \
+                gcc-c++ \
+                cmake \
+                clang \
+                llvm \
+                libffi-devel \
+                2>&1 | tail -10 || true
             fi
-            # Refresh Cargo.lock so the in-container `cargo build` does not have
-            # to update the registry for a stale lock entry (e.g. oqs bumped in
-            # Cargo.toml). Updating here, before the cargo build starts, keeps
-            # the build deterministic and resilient to transient network errors.
+            # Refresh Cargo.lock so the in-container `cargo build` does not
+            # have to update the registry for a stale lock entry (e.g. oqs
+            # bumped in Cargo.toml). Updating here, before the cargo build
+            # starts, keeps the build deterministic and resilient to
+            # transient network errors.
             cargo update -p oqs || true
-            # Configure OpenSSL for cargo build to pick up the system library
-            # installed above. We intentionally do NOT set OPENSSL_NO_VENDOR=1
-            # because Cargo.toml no longer enables the vendored feature.
-            if [ -f /usr/include/openssl/opensslv.h ]; then
-              echo "System OpenSSL found at /usr/include/openssl, using it"
-              export OPENSSL_DIR=/usr
-            else
-              echo "ERROR: /usr/include/openssl/opensslv.h not found after setup"
-              echo "openssl-sys will fail to compile. Listing OpenSSL packages:"
+            # Verify the system OpenSSL is available so the in-container
+            # cargo build can use it via $OPENSSL_DIR=/usr.
+            if [ ! -f /usr/include/openssl/opensslv.h ]; then
+              echo "ERROR: /usr/include/openssl/opensslv.h not found after dnf install"
+              echo "Listing OpenSSL packages installed:"
               rpm -qa 2>/dev/null | grep -i ssl | head -20 || true
+            else
+              echo "System OpenSSL found at /usr/include/openssl — using it (OPENSSL_NO_VENDOR=1)"
+              /usr/bin/openssl version
             fi
             unset OPENSSL_INCLUDE_DIR
             unset OPENSSL_LIB_DIR
@@ -1724,6 +1726,88 @@ jobs:
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TEST_API_TOKEN }}
+
+  ################################################################################
+  # Job: Fuzz smoke test
+  ################################################################################
+  # Runs the cargo-fuzz targets for a short time on PRs to catch obvious
+  # panics introduced by recent changes. Long-running nightly campaigns
+  # are scheduled separately (workflow_dispatch / schedule). Uses the
+  # nightly toolchain because libFuzzer requires it.
+  ################################################################################
+  fuzz-smoke:
+    # Only run when the `fuzz` label is applied, or on manual dispatch.
+    if: |
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'fuzz')) ||
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    continue-on-error: false
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - protocol_frame_parse
+          - protocol_frame_header_parse
+          - jwt_validate
+          - cache_deserialize
+          - prepared_statement_new
+          - crypto_decrypt
+          - crypto_verify_ed25519
+          - crypto_decrypt_cbc
+          - queue_message_headers
+          - gateway_radix_parse
+          - gateway_radix_find
+          - dilithium_verify
+          - kyber_decapsulate
+          - observability_trace_context
+          - observability_baggage
+          - serialization_json
+          - serialization_yaml
+          - serialization_bincode
+          - validation_url
+          - validation_uuid
+          - validation_email
+          - crypto_chacha20poly1305
+          - crypto_verify_ecdsa
+          - regex_match
+          - uuid_parse
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust nightly
+        uses: dtolnay/rust-toolchain@nightly
+
+      - name: Install cargo-fuzz
+        run: cargo install cargo-fuzz
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcurl4-openssl-dev libsasl2-dev build-essential \
+            pkg-config libssl-dev cmake ninja-build clang
+
+      - name: Sync Cargo.lock
+        run: cargo update -p oqs
+
+      - name: Run fuzz target for 60 seconds
+        working-directory: fuzz
+        run: |
+          cargo +nightly fuzz run ${{ matrix.target }} -- \
+            -max_total_time=60 \
+            -max_len=4096 \
+            -print_final_stats=1
+        env:
+          CARGO_NET_RETRY: '5'
+          CARGO_NET_TIMEOUT: '120'
+
+      - name: Upload crash artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-crash-${{ matrix.target }}
+          path: |
+            fuzz/artifacts/${{ matrix.target }}/
+            fuzz/corpus/${{ matrix.target }}/
 
   ################################################################################
   # Job: Sync Release to Gitee
