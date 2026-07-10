@@ -39,8 +39,8 @@ English | [简体中文](README.zh.md)
 </a>
 
 
-<a href="https://crates.io/crates/ri" target="_blank">
-    <img alt="Crates.io" src="https://img.shields.io/badge/Crates-Ri-000000?style=flat-square&logo=rust"/>
+<a href="https://crates.io/crates/rik" target="_blank">
+    <img alt="Crates.io" src="https://img.shields.io/badge/Crates-Rik-000000?style=flat-square&logo=rust"/>
 </a>
 <a href="https://pypi.org/project/ri/" target="_blank">
     <img alt="PyPI" src="https://img.shields.io/badge/PyPI-Ri-3775A9?style=flat-square&logo=pypi"/>
@@ -219,7 +219,7 @@ Add Ri to your project's `Cargo.toml`:
 
 ```toml
 [dependencies]
-ri = "0.1.9"
+ri = { package = "rik", version = "0.1.9" }
 ```
 
 Or use cargo add:

@@ -362,10 +362,15 @@ pub extern "C" fn ri_queue_message_new(payload: *const c_char, payload_len: usiz
             Err(_) => return std::ptr::null_mut(),
         };
 
-        // Use into_raw_parts for proper memory ownership transfer
-        // into_raw_parts takes ownership, so no mem::forget needed
-        let payload_vec = message.payload.clone();
-        let (payload_ptr, _payload_cap, payload_len_val) = payload_vec.into_raw_parts();
+        // Transfer the buffer ownership to C without invoking the Vec destructor.
+        // Equivalent of Vec::into_raw_parts() on nightly, expressed with the
+        // stable surface (as_mut_ptr + mem::forget). The C side is responsible
+        // for releasing the buffer using the same global allocator.
+        let mut payload_vec = message.payload.clone();
+        let payload_ptr = payload_vec.as_mut_ptr();
+        let payload_len_val = payload_vec.len();
+        let _payload_cap = payload_vec.capacity();
+        std::mem::forget(payload_vec);
 
         let boxed_msg = Box::new(CRiQueueMessage {
             id,
@@ -550,10 +555,15 @@ pub extern "C" fn ri_queue_manager_consume(
                                     Err(_) => return -7,
                                 };
 
-                                // Use into_raw_parts for proper memory ownership transfer
-                                // into_raw_parts takes ownership, so no mem::forget needed
-                                let payload_vec = msg.payload.clone();
-                                let (payload_ptr, _payload_cap, payload_len_val) = payload_vec.into_raw_parts();
+                                // Transfer the buffer ownership to C without invoking the Vec
+                                // destructor. Stable equivalent of Vec::into_raw_parts()
+                                // (as_mut_ptr + mem::forget). The C side releases the
+                                // buffer through the same global allocator.
+                                let mut payload_vec = msg.payload.clone();
+                                let payload_ptr = payload_vec.as_mut_ptr();
+                                let payload_len_val = payload_vec.len();
+                                let _payload_cap = payload_vec.capacity();
+                                std::mem::forget(payload_vec);
 
                                 *out_msg = Box::into_raw(Box::new(CRiQueueMessage {
                                     id,

@@ -546,6 +546,8 @@ pub struct RiProtocolManager {
     /// Message sequence counter
     sequence_counter: Arc<AtomicU64>,
     /// Protocol initialized state
+    /// Exposed to Python bindings; read by the pyo3 wrapper, not by the Rust impl.
+    #[allow(dead_code)]
     initialized: Arc<RwLock<bool>>,
 }
 
