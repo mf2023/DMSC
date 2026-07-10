@@ -28,6 +28,9 @@
 <a href="https://space.bilibili.com/3493284091529457" target="_blank">
     <img alt="BiliBili" src="https://img.shields.io/badge/BiliBili-Dunimd-00A1D6?style=flat-square&logo=bilibili"/>
 </a>
+<a href="https://pd.qq.com/g/pd35299000?tab=1&keyword=Dunimd" target="_blank">
+    <img alt="Tencent Channel" src="https://img.shields.io/badge/Tencent Channel-07C160?style=flat-square&logo=tencentqq"/>
+</a>
 <a href="https://huggingface.co/dunimd" target="_blank">
     <img alt="Hugging Face" src="https://img.shields.io/badge/Hugging%20Face-Dunimd-FFD21E?style=flat-square&logo=huggingface"/>
 </a>

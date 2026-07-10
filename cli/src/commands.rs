@@ -243,6 +243,7 @@ fn gather_template_context(
 
     // Project metadata
     context.insert("project_name".to_string(), project_name.to_string());
+    context.insert("project_version".to_string(), "0.1.0".to_string());
     context.insert("version".to_string(), "0.1.0".to_string());
     context.insert("description".to_string(), format!("A Ri {} application", template_name));
 

@@ -2,6 +2,111 @@
 <img src="assets/svg/ri.svg" width="36" height="36">
 </div>
 
+## [0.1.9] - 2026-07-10
+
+<div align="center">
+<img src="assets/CHANGELOG/0.1.9.png" width="60%" style="max-width: 600px;">
+</div>
+
+### 🚀 Project Rename: DMSC → Ri
+
+- Project fully renamed from "Dunimd Middleware Service (DMSC)" to "Ri"
+- Crate name changed from `dmsc` to `ri`
+- Python package renamed from `dmsc` to `ri` (directory `python/dmsc/` → `python/ri/`)
+- Java package renamed from `com.dunimd.dmsc` to `com.dunimd.ri`
+- All public API symbols renamed from `DMSC*` prefix to `Ri*` prefix across Rust / Python / Java / C / C++
+- Repository URL updated to `https://github.com/mf2023/Ri`
+
+### ✨ CLI Tool (`ric`)
+
+- New `cli/` crate providing the `ric` (Ri Commander) command-line tool
+- Project scaffolding via `ric new <project-type>` supporting 5 templates:
+  - `minimal` — Minimal project setup
+  - `api` — REST API service project
+  - `web` — Web application project
+  - `worker` — Background worker project
+  - `microservice` — Microservice project
+- Tera-based template engine with code generation
+- Config generation with YAML/TOML/JSON schema validation and dependency management
+- Shell completion scripts (bash, zsh, fish)
+- Workspace integration with the main `ri` crate
+
+### 🧪 Fuzz Testing
+
+- New `fuzz/` crate with 25 fuzz targets covering:
+  - Cache deserialization
+  - Crypto operations (ChaCha20Poly1305, decryption, CBC, ECDSA / Ed25519 signature verification)
+  - Post-quantum cryptography (Dilithium verify, Kyber decapsulate)
+  - Gateway radix tree (find, parse)
+  - JWT validation
+  - Observability (baggage, trace context)
+  - Prepared statements
+  - Protocol frame (header parse, frame parse)
+  - Queue message headers
+  - Regex matching
+  - Serialization (bincode, JSON, YAML)
+  - UUID parsing
+  - Data validation (email, URL, UUID)
+
+### ☕ Java Bindings Rewrite
+
+- All 161 Java source files rewritten under the new `com.dunimd.ri` package
+- Massive API expansion adding full coverage for all modules:
+  - **Core**: `RiAppBuilder`, `RiAppRuntime`, `RiServiceContext`, `RiConfig`, `RiError`, `RiErrorChain`, `RiHealthCheck*`, `RiLifecycleObserver`, `RiLockError`, `RiLogAnalyticsModule`
+  - **Auth**: Full OAuth2 support, JWT management with revocation, RBAC permissions, session management
+  - **Cache**: Multi-backend caching with policies, stats, events
+  - **Database**: Connection pooling, migrations, metrics, dynamic pool config
+  - **Device**: Device control, health metrics, resource allocation & scheduling, network discovery
+  - **Gateway**: Router, rate limiter (sliding window), circuit breaker, load balancer
+  - **gRPC**: Server & client support
+  - **Hooks**: Event bus, module phases
+  - **Log**: Configurable logging with levels
+  - **ModuleRPC**: Inter-module RPC framework
+  - **Observability**: Metrics registry, tracing, system / CPU / memory / disk / network metrics
+  - **Protocol**: Frame-based protocol handling with connection management and security levels
+  - **Queue**: Multi-backend queuing with retry policies & dead letter queues
+  - **Service Mesh**: Service discovery, traffic routing, health checking
+  - **Validation**: Schema validation, sanitization, severity-based error reporting
+  - **WebSocket**: Server & client
+
+### 🔧 Build System & CI/CD
+
+- New `Makefile` (723 lines) providing unified build system for all platforms and targets
+- Cargo workspace configuration (main `ri` crate + `ric` CLI, resolver v2)
+- CI/CD pipeline completely reworked:
+  - Multi-platform wheel builds: Linux x64/ARM64, Windows x64/ARM64, macOS x64/ARM64
+  - Docker-based manylinux builds for Python wheels
+  - Cross-compilation support with automatic platform detection
+  - Native library artifact packaging per platform
+- `bindings` feature flag added (aggregates `pyo3` + `c` + `java`)
+- `protocol-advanced` feature flag for future/experimental protocol features
+- Default features adjusted: removed pyo3/java from defaults, `c` added by default
+
+### 📦 Dependencies & Platform Updates
+
+- Added `sha2` crate for key fingerprinting
+- Upgraded `sqlx` from 0.7 to 0.8; removed direct `rusqlite` dependency
+- Post-quantum crypto: `oqs` switched to vendored build (v0.10, features: `kems`, `sigs`, `std`)
+- Platform-specific dependency strategy for `openssl-sys` and `rdkafka`:
+  - Linux: system OpenSSL + system GSSAPI/SASL (avoid vendored build issues on manylinux)
+  - Windows: vendored OpenSSL, SSPI for Kerberos
+
+### 📝 Documentation
+
+- `ANNOUNCEMENT.md` and `ANNOUNCEMENT.zh.md` added
+- `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md` updated for Ri
+- README / README.zh updated for new branding
+- Docs CI pipeline updated: `OPENSSL_NO_VENDOR=1`, `liboqs-dev` installation
+- `assets/svg/ri.svg` added; `dmsc.svg` removed
+
+### ⚡ Core Refactoring
+
+- All 20+ core modules refactored: core, auth, cache, config, database, device, fs, gateway, grpc, hooks, log, module_rpc, observability, protocol, queue, service_mesh, validation, ws
+- C API headers regenerated via cbindgen
+- Python / C / C++ / Rust examples and test files updated for new Ri API
+
+---
+
 ## [0.1.8] - 2026-04-05
 
 - Fix some known issues
