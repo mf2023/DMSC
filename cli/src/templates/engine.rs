@@ -248,9 +248,10 @@ pub struct TemplateEngine {
     /// Template registry mapping template names to their metadata
     templates: HashMap<String, TemplateInfo>,
 
-    /// Base directory for template files
+    /// Base directory for template files (optional — embedded templates
+    /// are used when this is None).
     #[allow(dead_code)]
-    template_dir: PathBuf,
+    template_dir: Option<PathBuf>,
 }
 
 impl TemplateEngine {
@@ -270,11 +271,15 @@ impl TemplateEngine {
     /// let engine = TemplateEngine::new()?;
     /// ```
     pub fn new() -> Result<Self> {
-        let template_dir = Self::find_template_dir()?;
+        let template_dir = Self::find_template_dir();
 
-        // Initialize Tera with template directory
-        let tera = Tera::new(&format!("{}/**/*", template_dir.display()))
-            .context("Failed to initialize Tera template engine")?;
+        // Initialize Tera with template directory if available; otherwise use
+        // an empty instance (rendering goes through embedded templates).
+        let tera = match &template_dir {
+            Some(dir) => Tera::new(&format!("{}/**/*", dir.display()))
+                .context("Failed to initialize Tera template engine")?,
+            None => Tera::default(),
+        };
 
         // Load template metadata
         let templates = Self::load_template_registry()?;
@@ -292,11 +297,9 @@ impl TemplateEngine {
     /// 1. Current working directory: `./templates`
     /// 2. Executable directory: `<exe_dir>/templates`
     ///
-    /// # Returns
-    ///
-    /// Returns the path to the template directory.
-    /// Returns an error if the directory cannot be found.
-    fn find_template_dir() -> Result<PathBuf> {
+    /// Returns `None` if no template directory is found (embedded templates
+    /// will be used instead).
+    fn find_template_dir() -> Option<PathBuf> {
         let search_paths = vec![
             PathBuf::from("templates"),
             std::env::current_exe()
@@ -307,14 +310,11 @@ impl TemplateEngine {
 
         for path in &search_paths {
             if path.exists() {
-                return Ok(path.to_path_buf());
+                return Some(path.to_path_buf());
             }
         }
 
-        Err(anyhow::anyhow!(
-            "Template directory not found. Searched in: {:?}",
-            search_paths
-        ))
+        None
     }
 
     /// Load the template registry

@@ -1532,6 +1532,7 @@ jobs:
                   gcc \
                   gcc-c++ \
                   cyrus-sasl-devel \
+                  libcurl-devel \
                   2>&1 | tail -40
               )
               # Optional packages — failures here are tolerated because
@@ -1558,6 +1559,7 @@ jobs:
                   gcc \
                   gcc-c++ \
                   cyrus-sasl-devel \
+                  libcurl-devel \
                   2>&1 | tail -40
               )
               yum install -y \
