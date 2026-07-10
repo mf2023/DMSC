@@ -252,7 +252,7 @@ setup-deps:
 	elif command -v yum >/dev/null 2>&1 || command -v dnf >/dev/null 2>&1; then \
 		echo "Using yum/dnf (CentOS/RHEL/Fedora/manylinux)"; \
 		if command -v dnf >/dev/null 2>&1; then PKGMGR=dnf; else PKGMGR=yum; fi; \
-		$$PKGMGR install -y libcurl-devel openssl-devel openssl-libs libsasl2-devel gcc gcc-c++ make cmake git ninja-build perl-core perl-IPC-Cmd perl-Data-Dumper; \
+		$$PKGMGR install -y libcurl-devel openssl-devel openssl-libs cyrus-sasl-devel gcc gcc-c++ make cmake git ninja-build perl-core perl-IPC-Cmd perl-Data-Dumper; \
 		if [ ! -f /usr/lib64/liboqs.so ] && [ ! -f /usr/local/lib64/liboqs.so ] && [ ! -f /usr/lib/x86_64-linux-gnu/liboqs.so ]; then \
 			echo "Building liboqs from source..."; \
 			cd /tmp && rm -rf liboqs && git clone --depth 1 https://github.com/open-quantum-safe/liboqs.git && \

@@ -33,9 +33,8 @@ public class RiFileSystem {
         this.nativePtr = new0();
     }
 
-    // Package-private constructor used by RiServiceContext to wrap a
-    // native pointer returned from Rust.
-    RiFileSystem(long ptr) {
+    // Used by RiServiceContext to wrap a native pointer returned from Rust.
+    public RiFileSystem(long ptr) {
         this.nativePtr = ptr;
     }
 
