@@ -30,15 +30,18 @@ fn main() {
     std::fs::create_dir_all(&include_dir)
         .expect("Failed to create include/ directory for generated C header");
 
+    let config = cbindgen::Config::from_file(&config_path)
+        .expect("Failed to load cbindgen.toml");
+
     let bindings = cbindgen::Builder::new()
         .with_crate(&manifest_dir)
-        .with_config(&config_path)
+        .with_config(config)
         .generate()
         .expect("Failed to generate C bindings (include/ri.h) via cbindgen");
 
-    bindings
-        .write_to_file(&header_path)
-        .expect("Failed to write include/ri.h");
+    if !bindings.write_to_file(&header_path) {
+        panic!("Failed to write include/ri.h");
+    }
 
     // Re-run this build script when the C API sources or cbindgen config change.
     println!("cargo:rerun-if-changed=src/c/mod.rs");
