@@ -438,10 +438,7 @@ ifeq ($(PLATFORM),windows)
 else
 	cargo build $(BUILD_MODE) --target $(TARGET) --no-default-features --features c
 endif
-	@echo "$(GREEN)Generating C headers...$(NC)"
 	@mkdir -p $(INCLUDE_DIR)
-	@if ! command -v cbindgen >/dev/null 2>&1; then cargo install cbindgen; fi
-	cbindgen --crate rih -o $(INCLUDE_DIR)/ri.h
 ifeq ($(PLATFORM),windows)
 	@echo "$(GREEN)✓ C library built: $(TARGET_DIR)/ri.$(STATIC_EXT)$(NC)"
 else

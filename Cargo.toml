@@ -683,3 +683,8 @@ harness = false
 name = "grpc"
 harness = false
 required-features = ["grpc"]
+
+[build-dependencies]
+# Used by build.rs to auto-generate include/ri.h on every `cargo build`,
+# so the C header is produced during normal compilation as well as during release.
+cbindgen = "0.29"
