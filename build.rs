@@ -32,7 +32,7 @@ fn main() {
 
     let bindings = cbindgen::Builder::new()
         .with_crate(&manifest_dir)
-        .with_config_file(&config_path)
+        .with_config(&config_path)
         .generate()
         .expect("Failed to generate C bindings (include/ri.h) via cbindgen");
 
