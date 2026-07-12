@@ -11,7 +11,7 @@
 ### 🚀 Project Rename: DMSC → Ri
 
 - Project fully renamed from "Dunimd Middleware Service (DMSC)" to "Ri"
-- Crate name changed from `dmsc` to `rik` (published on crates.io as `rik`, importable as `ri` via `ri = { package = \"rik\", version = \"0.1\" }`)
+- Crate name changed from `dmsc` to `rih` (published on crates.io as `rih`, importable as `ri` via `ri = { package = \"rih\", version = \"0.1\" }`)
 - Python package renamed from `dmsc` to `ri` (directory `python/dmsc/` → `python/ri/`)
 - Java package renamed from `com.dunimd.dmsc` to `com.dunimd.ri`
 - All public API symbols renamed from `DMSC*` prefix to `Ri*` prefix across Rust / Python / Java / C / C++

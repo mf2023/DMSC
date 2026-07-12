@@ -39,7 +39,7 @@
 </a>
 
 
-<a href="https://crates.io/crates/rik" target="_blank">
+<a href="https://crates.io/crates/rih" target="_blank">
     <img alt="Crates.io" src="https://img.shields.io/badge/Crates-Rik-000000?style=flat-square&logo=rust"/>
 </a>
 <a href="https://pypi.org/project/ri/" target="_blank">
@@ -219,7 +219,7 @@ sudo yum install -y cmake gcc-c++ make
 
 ```toml
 [dependencies]
-ri = { package = "rik", version = "0.1.9" }
+ri = { package = "rih", version = "0.1.9" }
 ```
 
 或者使用 cargo add：

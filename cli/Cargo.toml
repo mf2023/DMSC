@@ -117,7 +117,7 @@ path = "src/lib.rs"
 # Uses path dependency for local development
 # Disables default features to minimize compilation time and binary size
 # CLI tool doesn't need all Ri features (no protocol, no database drivers, etc.)
-ri = { package = "rik", path = "..", default-features = false, features = [] }
+ri = { package = "rih", path = "..", default-features = false, features = [] }
 
 # Command-line argument parsing with derive macros
 # Features enabled:

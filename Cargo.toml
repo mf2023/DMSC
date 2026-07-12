@@ -46,7 +46,7 @@
 
 [package]
 # Package name used for crate publishing and dependency references
-name = "rik"
+name = "rih"
 
 # Semantic version of the package
 # Follows MAJOR.MINOR.PATCH format
